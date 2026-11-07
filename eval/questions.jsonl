@@ -1,0 +1,5 @@
+{"q": "HLS 재생 중 버퍼링이 생기면 어디부터 확인해?", "source": "hls-buffering-debug.md"}
+{"q": "ABR에서 화질이 자꾸 오르내리는 문제는 왜 생겨?", "source": "hls-buffering-debug.md"}
+{"q": "브라우저 자동재생 정책 때문에 영상이 안 나올 때 해결법", "source": "autoplay-policy.md"}
+{"q": "음소거 상태로 자동재생하려면 어떻게 해야 해?", "source": "autoplay-policy.md"}
+{"q": "RAG에서 청크 크기는 어떻게 정했어?", "source": "about-this-wiki.md"}

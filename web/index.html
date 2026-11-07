@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sonia Wiki</title>
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --line:#2a2f3a; --text:#e6e8ee; --muted:#8b93a7; --accent:#5b8cff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 120px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .msg { padding: 14px 16px; border-radius: 12px; margin: 12px 0; line-height: 1.65; white-space: pre-wrap; }
+  .user { background: var(--accent); color:#fff; margin-left: 20%; }
+  .bot { background: var(--panel); border:1px solid var(--line); }
+  .sources { display:grid; gap:8px; margin-top:12px; }
+  .src { border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:13px; color:var(--muted); }
+  .src b { color: var(--text); }
+  .src a { color: var(--accent); text-decoration: none; }
+  .score { float:right; font-variant-numeric: tabular-nums; }
+  form { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, var(--bg) 30%); padding: 24px 16px; }
+  .bar { max-width: 760px; margin: 0 auto; display:flex; gap:8px; }
+  input { flex:1; padding: 14px 16px; border-radius: 12px; border:1px solid var(--line); background: var(--panel); color: var(--text); font-size: 15px; }
+  button { padding: 0 20px; border-radius: 12px; border:0; background: var(--accent); color:#fff; font-size: 15px; cursor:pointer; }
+  button:disabled { opacity: .5; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sonia Wiki</h1>
+  <div class="sub">내 블로그 글에 질문하면, 근거 문단과 함께 답해 드려요.</div>
+  <div id="log"></div>
+</main>
+<form id="f">
+  <div class="bar">
+    <input id="q" placeholder="예: HLS 재생이 끊길 때 어떻게 디버깅했지?" autocomplete="off" />
+    <button id="btn">질문</button>
+  </div>
+</form>
+<script>
+const log = document.getElementById("log");
+const f = document.getElementById("f");
+const q = document.getElementById("q");
+const btn = document.getElementById("btn");
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+f.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = q.value.trim();
+  if (!question) return;
+  log.appendChild(el("div", "msg user", question));
+  q.value = ""; btn.disabled = true;
+  const bot = el("div", "msg bot", "검색 중…");
+  log.appendChild(bot);
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    bot.textContent = data.answer;
+    const box = el("div", "sources");
+    for (const s of data.sources) {
+      const card = el("div", "src");
+      card.appendChild(el("span", "score", `유사도 ${s.score}`));
+      const title = el("b", null, `[${s.n}] ${s.title}${s.heading ? " › " + s.heading : ""}`);
+      if (s.url) { const a = el("a"); a.href = s.url; a.target = "_blank"; a.appendChild(title); card.appendChild(a); }
+      else card.appendChild(title);
+      card.appendChild(el("div", null, s.snippet + "…"));
+      box.appendChild(card);
+    }
+    bot.appendChild(box);
+  } catch (err) {
+    bot.textContent = "오류: " + err.message;
+  } finally {
+    btn.disabled = false; q.focus();
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+});
+</script>
+</body>
+</html>
