@@ -104,3 +104,7 @@ web/index.html   # 채팅 UI
 eval/            # 검색 품질 평가
 data/posts/      # 위키 원본 마크다운
 ```
+
+## 라이선스
+
+코드는 [MIT](LICENSE)입니다. `data/posts/`의 블로그 글은 저작권이 저에게 있으며 재사용을 허락하지 않습니다.
