@@ -1,6 +1,6 @@
 ---
 title: 이 위키를 만든 방법
-url: https://github.com/
+url: https://github.com/ckdtjs505/sonia-wiki
 ---
 
 ## 청크 전략
