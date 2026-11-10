@@ -3,6 +3,6 @@ uvicorn[standard]>=0.29
 pydantic>=2
 python-dotenv>=1.0
 chromadb>=0.5
-anthropic>=0.40
+google-genai>=1.0
 sentence-transformers>=3.0   # EMBEDDING_PROVIDER=local
 openai>=1.30                 # EMBEDDING_PROVIDER=openai

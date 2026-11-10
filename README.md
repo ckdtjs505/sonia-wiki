@@ -2,7 +2,7 @@
 
 내 개발 블로그 글(마크다운)에 자연어로 질문하면, **관련 문단을 Vector DB에서 찾아 근거와 함께** 답해 주는 RAG 데모입니다.
 
-> 데모 GIF 자리 — `docs/demo.gif`
+![데모: 질문하면 블로그 글을 근거로 답하고 출처 카드를 보여 준다](docs/demo.gif)
 
 ## 아키텍처
 
@@ -18,7 +18,7 @@ flowchart LR
     E --> F[Top-k 유사도 검색]
     D --> F
     F --> G[프롬프트 조립<br/>근거 문단 + 인용 규칙]
-    G --> H[Claude]
+    G --> H[Gemini]
     H --> I[답변 + 출처 카드]
   end
 ```
@@ -30,15 +30,15 @@ flowchart LR
 | API 서버 | Python, FastAPI |
 | Vector DB | ChromaDB (로컬 영속 저장) |
 | 임베딩 | `BAAI/bge-m3` (다국어, 로컬) / OpenAI `text-embedding-3-small` — 설정으로 교체 |
-| LLM | Anthropic Claude |
+| LLM | Google Gemini |
 | 프론트 | 바닐라 JS 채팅 UI (출처·유사도 표시) |
 
 ## 실행 방법
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env            # ANTHROPIC_API_KEY 입력
+cp .env.example .env            # GEMINI_API_KEY 입력
 
 python -m app.ingest            # data/posts/*.md → ChromaDB
 uvicorn app.main:app --reload   # http://localhost:8000
@@ -64,11 +64,19 @@ python -m eval.run_eval --k 3   # 검색 품질 평가
 
 `eval/questions.jsonl`의 질문마다 정답 문서가 Top-k 안에 들어오는지 측정합니다 (LLM 호출 없음 → 비용 0).
 
-| 설정 | Hit@3 | MRR |
-|---|---|---|
-| bge-m3, chunk 500 | _측정 후 기입_ | |
-| OpenAI small, chunk 500 | | |
-| bge-m3, chunk 300 | | |
+질문 14개, 문서 45개(청크 365개) 기준입니다. 질문은 글 제목을 그대로 쓰지 않고 다른 말로 바꿔 물었습니다.
+
+| 설정 | 청크 수 | Hit@1 | Hit@3 | MRR@3 |
+|---|---|---|---|---|
+| bge-m3, chunk 500 / overlap 50 (기본값) | 365 | 86% (12/14) | 100% (14/14) | 0.917 |
+| bge-m3, chunk 300 / overlap 30 | 505 | 86% (12/14) | 100% (14/14) | 0.929 |
+
+- **1위를 놓친 2건은 두 설정에서 같았습니다.** 모두 주제가 겹치는 글에 밀렸습니다.
+  - 클로저 질문 → '렉시컬 환경' 글이 1위, 클로저 글은 2위
+  - 프로토타입 체인 질문 → '객체' 글이 1위, 프로토타입 글은 3위(500) / 2위(300)
+- **청크를 300으로 줄여도 거의 같았습니다.** MRR 차이는 질문 1개의 순위가 한 칸 오른 것뿐인데, 청크는 38% 늘어납니다. 그래서 기본값은 500으로 두었습니다.
+- **남은 문제는 청크 크기가 아니라 비슷한 주제끼리의 구분입니다.** 다음에 할 일은 리랭커(예: bge-reranker)로 상위 결과의 순서를 다시 매기는 것입니다.
+- 질문이 14개뿐이라 1문항이 약 7%p를 움직입니다. 질문을 늘릴수록 숫자를 더 믿을 수 있습니다.
 
 ## 한계와 개선 계획
 - **하이브리드 검색:** 고유명사·에러 코드는 키워드(BM25) 검색이 더 강함 → 벡터 + BM25 결합
@@ -85,7 +93,7 @@ app/
   embeddings.py  # 임베딩 제공자 (local / openai)
   store.py       # ChromaDB 저장·검색
   ingest.py      # 적재 스크립트
-  rag.py         # 프롬프트 조립 + Claude 호출
+  rag.py         # 프롬프트 조립 + Gemini 호출
   main.py        # FastAPI
 web/index.html   # 채팅 UI
 eval/            # 검색 품질 평가

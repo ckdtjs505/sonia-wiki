@@ -1,6 +1,7 @@
 """FastAPI 서버. 실행: uvicorn app.main:app --reload"""
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from google.genai import errors
 from pydantic import BaseModel, Field
 
 from app import config
@@ -22,7 +23,10 @@ def index():
 
 @app.post("/ask")
 def ask(req: AskRequest):
-    return answer(req.question, req.k)
+    try:
+        return answer(req.question, req.k)
+    except errors.APIError as e:  # 키·크레딧·모델 이름 문제를 화면에 그대로 보여 준다
+        raise HTTPException(502, f"Gemini 오류 {e.code}: {e.message}")
 
 
 @app.get("/search")

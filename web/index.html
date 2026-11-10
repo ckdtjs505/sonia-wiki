@@ -34,7 +34,7 @@
 </main>
 <form id="f">
   <div class="bar">
-    <input id="q" placeholder="예: HLS 재생이 끊길 때 어떻게 디버깅했지?" autocomplete="off" />
+    <input id="q" placeholder="예: 기술 부채 이자가 뭐야?" autocomplete="off" />
     <button id="btn">질문</button>
   </div>
 </form>
@@ -65,7 +65,12 @@ f.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+      const t = await res.text();
+      let msg = t;
+      try { const d = JSON.parse(t).detail; msg = typeof d === "string" ? d : JSON.stringify(d); } catch {}
+      throw new Error(msg);
+    }
     const data = await res.json();
     bot.textContent = data.answer;
     const box = el("div", "sources");
