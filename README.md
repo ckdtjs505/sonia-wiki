@@ -2,6 +2,9 @@
 
 내 개발 블로그 글(마크다운)에 자연어로 질문하면, **관련 문단을 Vector DB에서 찾아 근거와 함께** 답해 주는 RAG 데모입니다.
 
+- 데이터: 제 블로그 [Sonia.dev](https://ckdtjs505.github.io)에 공개한 글 44개 (`data/posts/`)
+- 답변의 출처 카드를 누르면 해당 블로그 글로 이동합니다.
+
 ![데모: 질문하면 블로그 글을 근거로 답하고 출처 카드를 보여 준다](docs/demo.gif)
 
 ## 아키텍처
@@ -38,12 +41,14 @@ flowchart LR
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env            # GEMINI_API_KEY 입력
+cp .env.example .env            # GEMINI_API_KEY 입력 (https://aistudio.google.com/apikey, 무료 등급 가능)
 
 python -m app.ingest            # data/posts/*.md → ChromaDB
 uvicorn app.main:app --reload   # http://localhost:8000
 python -m eval.run_eval --k 3   # 검색 품질 평가
 ```
+
+> 평가(`eval.run_eval`)와 검색(`GET /search?q=`)은 LLM을 부르지 않아 API 키 없이도 재현할 수 있습니다.
 
 ## 설계 결정
 
