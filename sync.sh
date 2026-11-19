@@ -22,10 +22,13 @@ cp data/posts/about-this-wiki.md "$TMP/"
 if diff -rq "$TMP" data/posts >/dev/null; then echo "$(date '+%F %T') 변경 없음"; rm -rf "$TMP"; exit 0; fi
 
 rm -rf data/posts && mv "$TMP" data/posts
+# README 맨 위 글 개수·기준일 갱신 (macOS sed)
+N=$(ls "$BLOG"/_posts/*.md | wc -l | tr -d ' ')
+sed -i '' -E "s/공개한 글 [0-9]+개 \(\`data\/posts\/\`, [0-9-]+ 기준/공개한 글 ${N}개 (\`data\/posts\/\`, $(date +%F) 기준/" README.md
 .venv/bin/python -m app.ingest
 launchctl kickstart -k "gui/$(id -u)/dev.sonia.wiki"  # 새 컬렉션을 서버가 다시 열도록
 
-git add data/posts
+git add data/posts README.md
 git commit -qm "블로그 글 동기화" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 git push -q origin HEAD:main
 echo "$(date '+%F %T') 동기화 완료"
