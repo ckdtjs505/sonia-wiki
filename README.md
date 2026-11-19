@@ -2,7 +2,7 @@
 
 내 개발 블로그 글(마크다운)에 자연어로 질문하면, **관련 문단을 Vector DB에서 찾아 근거와 함께** 답해 주는 RAG 데모입니다.
 
-- 데이터: 제 블로그 [Sonia.dev](https://ckdtjs505.github.io)에 공개한 글 44개 (`data/posts/`)
+- 데이터: 제 블로그 [Sonia.dev](https://ckdtjs505.github.io)에 공개한 글 56개 (`data/posts/`, 2026-11-19 기준 · 1시간마다 자동 동기화)
 - 답변의 출처 카드를 누르면 해당 블로그 글로 이동합니다.
 
 ![데모: 질문하면 블로그 글을 근거로 답하고 출처 카드를 보여 준다](docs/demo.gif)
@@ -48,6 +48,15 @@ uvicorn app.main:app --reload   # http://localhost:8000
 python -m eval.run_eval --k 3   # 검색 품질 평가
 ```
 
+### 블로그 글 자동 동기화
+
+`./sync.sh`는 블로그 저장소의 `_posts/`를 받아 `data/posts/`에 맞춥니다. 각 글에는 원문 링크 `url:`을 붙이고, 블로그에서 지운 글은 여기서도 지웁니다.
+바뀐 글이 있으면 재적재, 서버 재시작, `data/posts` 커밋·push까지 하고, 없으면 아무것도 하지 않습니다.
+
+- 서버가 맥 로컬(`127.0.0.1`)에서 돌아 GitHub 웹훅이 닿지 않으므로, launchd(`~/Library/LaunchAgents/dev.sonia.wiki.sync.plist`)가 1시간마다 실행합니다.
+- 로그: `~/Library/Logs/sonia-wiki-sync.log`
+
+
 > 평가(`eval.run_eval`)와 검색(`GET /search?q=`)은 LLM을 부르지 않아 API 키 없이도 재현할 수 있습니다.
 
 ## 설계 결정
@@ -69,7 +78,7 @@ python -m eval.run_eval --k 3   # 검색 품질 평가
 
 `eval/questions.jsonl`의 질문마다 정답 문서가 Top-k 안에 들어오는지 측정합니다 (LLM 호출 없음 → 비용 0).
 
-질문 14개, 문서 45개(청크 365개) 기준입니다. 질문은 글 제목을 그대로 쓰지 않고 다른 말로 바꿔 물었습니다.
+질문 14개, 측정 당시 문서 45개(청크 365개) 기준입니다. 질문은 글 제목을 그대로 쓰지 않고 다른 말로 바꿔 물었습니다.
 
 | 설정 | 청크 수 | Hit@1 | Hit@3 | MRR@3 |
 |---|---|---|---|---|
@@ -86,7 +95,7 @@ python -m eval.run_eval --k 3   # 검색 품질 평가
 ## 한계와 개선 계획
 - **하이브리드 검색:** 고유명사·에러 코드는 키워드(BM25) 검색이 더 강함 → 벡터 + BM25 결합
 - **리랭킹:** Top-20을 뽑은 뒤 cross-encoder로 재정렬
-- **증분 적재:** 지금은 전체 재적재 → 파일 해시로 바뀐 글만 갱신
+- **증분 적재:** 지금은 글이 하나만 바뀌어도 동기화 때 전체 재적재(약 1분) → 파일 해시로 바뀐 글만 갱신
 - **스트리밍 응답:** SSE로 답변을 실시간 표시
 
 ## 폴더 구조
@@ -102,7 +111,8 @@ app/
   main.py        # FastAPI
 web/index.html   # 채팅 UI
 eval/            # 검색 품질 평가
-data/posts/      # 위키 원본 마크다운
+data/posts/      # 위키 원본 마크다운 (sync.sh가 블로그에서 동기화)
+sync.sh          # 블로그 → data/posts 동기화 + 재적재
 ```
 
 ## 라이선스
