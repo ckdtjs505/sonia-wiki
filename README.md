@@ -33,20 +33,17 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  subgraph GH["GitHub"]
-    B[블로그 저장소<br/>_posts/*.md]
-    P[프로필 README<br/>답변 카드 이미지]
+  V[방문자] --> F
+  P[GitHub 프로필 README] -- /card.svg --> F
+  F[Tailscale Funnel<br/>공개 HTTPS] --> U
+  subgraph MAC["내 맥 (launchd가 실행)"]
+    U["uvicorn :8000<br/>항상 실행"] --> O[Ollama<br/>로컬 LLM]
+    U --> D[(ChromaDB)]
+    U --> C[(카드 답변 캐시)]
+    S["sync.sh<br/>1시간마다"] -- 재적재 --> D
   end
-  subgraph MAC["내 맥"]
-    S["sync.sh<br/>(launchd, 1시간마다)"] --> D[data/posts + 재적재<br/>ChromaDB]
-    U["uvicorn :8000<br/>(launchd, 항상 실행)"] --> D
-    U --> O[Ollama 로컬 LLM]
-    U --> C[(.cache/cards.json<br/>카드 답변 캐시)]
-  end
-  B -- 바뀐 글 가져오기 --> S
-  S -- data/posts 커밋·push --> GH
-  V[방문자] --> F[Tailscale Funnel<br/>공개 HTTPS] --> U
-  P -- /card.svg --> F
+  B[블로그 저장소] -- 바뀐 글 --> S
+  S -- data/posts push --> R[sonia-wiki 저장소]
 ```
 
 | 구성 | 하는 일 |
