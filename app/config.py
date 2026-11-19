@@ -27,3 +27,7 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", 500))      # 글자 수
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 50))
 TOP_K = int(os.getenv("TOP_K", 4))
+
+# /ask 호출 제한 (1분 기준). 로컬 LLM이 한 번에 하나씩 답하므로 전체 한도도 둔다
+RATE_LIMIT_PER_IP = int(os.getenv("RATE_LIMIT_PER_IP", 5))
+RATE_LIMIT_TOTAL = int(os.getenv("RATE_LIMIT_TOTAL", 20))
