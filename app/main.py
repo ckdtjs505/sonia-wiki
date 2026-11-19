@@ -108,4 +108,4 @@ def card(request: Request, q: str = Query(..., min_length=1, max_length=200)):
         CARDS.write_text(json.dumps(cache, ensure_ascii=False, indent=1))
     c = cache[q]
     return Response(_card_svg(q, c["answer"], c["sources"]), media_type="image/svg+xml",
-                    headers={"Cache-Control": "no-cache, max-age=0"})
+                    headers={"Cache-Control": "public, max-age=3600"})  # Funnel 중계가 느려 GitHub 프록시가 자주 끊기므로 그쪽에 캐시시킨다
