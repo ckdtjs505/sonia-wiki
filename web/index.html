@@ -2,47 +2,356 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Sonia Wiki</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ckdtjs505/sonia-ui@1/src/css/base.css">
+<script src="https://cdn.jsdelivr.net/gh/ckdtjs505/sonia-ui@1/src/browser/theme.js"></script>
 <style>
-  :root { --bg:#0f1115; --panel:#181b22; --line:#2a2f3a; --text:#e6e8ee; --muted:#8b93a7; --accent:#5b8cff; }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif; background:var(--bg); color:var(--text); }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 120px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-  .msg { padding: 14px 16px; border-radius: 12px; margin: 12px 0; line-height: 1.65; white-space: pre-wrap; }
-  .user { background: var(--accent); color:#fff; margin-left: 20%; }
-  .bot { background: var(--panel); border:1px solid var(--line); }
-  .sources { display:grid; gap:8px; margin-top:12px; }
-  .src { border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:13px; color:var(--muted); }
-  .src b { color: var(--text); }
-  .src a { color: var(--accent); text-decoration: none; }
-  .score { float:right; font-variant-numeric: tabular-nums; }
-  form { position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, var(--bg) 30%); padding: 24px 16px; }
-  .bar { max-width: 760px; margin: 0 auto; display:flex; gap:8px; }
-  input { flex:1; padding: 14px 16px; border-radius: 12px; border:1px solid var(--line); background: var(--panel); color: var(--text); font-size: 15px; }
-  button { padding: 0 20px; border-radius: 12px; border:0; background: var(--accent); color:#fff; font-size: 15px; cursor:pointer; }
-  button:disabled { opacity: .5; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .sn-btn[hidden],
+  .empty[hidden],
+  .toast[hidden],
+  .loading-elapsed[hidden] { display: none; }
+  main {
+    max-width: 760px;
+    margin: var(--spacing-0) auto;
+    padding: var(--spacing-xl) var(--spacing-lg) calc(var(--spacing-hg) + env(safe-area-inset-bottom));
+  }
+  .hdr {
+    margin-bottom: var(--spacing-xl);
+  }
+  .hdr-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-s);
+  }
+  .hdr-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex-shrink: 0;
+  }
+  .theme-select {
+    width: auto;
+    max-width: 100%;
+    padding: var(--spacing-xs) var(--spacing-s);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-muted);
+    font: inherit;
+    font-size: var(--text-caption);
+    font-weight: var(--text-label--font-weight);
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .theme-select:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-foreground);
+  }
+  .theme-select:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -1px;
+  }
+  .theme-select option {
+    background: var(--color-surface);
+    color: var(--color-foreground);
+  }
+  h1 {
+    margin: var(--spacing-0);
+    line-height: 1.25;
+  }
+  .sub {
+    color: var(--color-muted);
+    margin: var(--spacing-xs) var(--spacing-0) var(--spacing-0);
+  }
+  .scope {
+    color: var(--color-muted);
+    margin: var(--spacing-xs) var(--spacing-0) var(--spacing-0);
+  }
+  .empty {
+    margin: var(--spacing-xl) var(--spacing-0);
+    border-style: dashed;
+  }
+  .empty-title {
+    margin: var(--spacing-0) var(--spacing-0) var(--spacing-md);
+    color: var(--color-muted);
+  }
+  .samples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-s);
+  }
+  .sample {
+    white-space: normal;
+    flex-shrink: 1;
+    text-align: left;
+    font-weight: var(--text-body--font-weight);
+  }
+  .msg {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin: var(--spacing-md) var(--spacing-0);
+    font-size: var(--text-body);
+    line-height: 1.65;
+    scroll-margin-top: var(--spacing-lg);
+  }
+  .user {
+    background: var(--color-primary-soft);
+    color: var(--color-foreground);
+    margin-left: 20%;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.error {
+    background: color-mix(in srgb, var(--color-flame) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-flame) 45%, transparent);
+  }
+  .answer {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .error-text { color: var(--color-flame); }
+  .error-detail {
+    margin-top: var(--spacing-xs);
+    word-break: break-word;
+  }
+  .muted { color: var(--color-muted); }
+  .cite {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--spacing-xl);
+    min-height: var(--spacing-xl);
+    padding: var(--spacing-0) var(--spacing-s);
+    margin: var(--spacing-0) 0.15em;
+    font-size: var(--text-caption);
+    font-weight: var(--text-label--font-weight);
+    line-height: 1.4;
+    vertical-align: baseline;
+  }
+  .cite:hover { text-decoration: underline; }
+  .bot-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-s);
+  }
+  .loading {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-muted);
+  }
+  .loading-elapsed {
+    font-variant-numeric: tabular-nums;
+  }
+  .dots {
+    display: inline-flex;
+    gap: var(--spacing-xs);
+    margin-left: var(--spacing-xs);
+    align-items: center;
+  }
+  .dots span {
+    width: var(--spacing-xs);
+    height: var(--spacing-xs);
+    border-radius: var(--radius-pill);
+    background: currentColor;
+    opacity: .25;
+    animation: dot-pulse 1.2s infinite ease-in-out;
+  }
+  .dots span:nth-child(2) { animation-delay: .2s; }
+  .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes dot-pulse {
+    0%, 80%, 100% { opacity: .25; transform: scale(.85); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes src-highlight {
+    0% { background: color-mix(in srgb, var(--color-primary) 24%, var(--color-surface)); }
+    100% { background: var(--color-primary-soft); }
+  }
+  .sources {
+    display: grid;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-md);
+  }
+  .src {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-caption);
+    color: var(--color-muted);
+    scroll-margin-top: var(--spacing-lg);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+  .src:target,
+  .src.src-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
+    animation: src-highlight 0.6s ease-out;
+  }
+  .src-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  .src-title {
+    color: var(--color-foreground);
+    font-weight: var(--text-label--font-weight);
+  }
+  .src-heading {
+    color: var(--color-muted);
+    font-weight: var(--text-body--font-weight);
+  }
+  .src-link:hover .src-title {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+  .snippet { margin-top: var(--spacing-xs); }
+  .snippet summary {
+    cursor: pointer;
+    color: var(--color-muted);
+    font-size: var(--text-overline);
+    user-select: none;
+  }
+  .snippet summary:hover { color: var(--color-foreground); }
+  .snippet-body {
+    margin-top: var(--spacing-xs);
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(var(--spacing-xxl) + var(--spacing-xl) + var(--spacing-xl) + env(safe-area-inset-bottom));
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s) var(--spacing-md);
+    font-size: var(--text-caption);
+    max-width: calc(100vw - var(--spacing-xl));
+    white-space: nowrap;
+  }
+  .toast-undo {
+    color: var(--color-primary);
+    padding: var(--spacing-xs) var(--spacing-s);
+  }
+  form {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, var(--color-background) 30%);
+    padding: var(--spacing-xl) var(--spacing-lg) calc(var(--spacing-xl) + env(safe-area-inset-bottom));
+  }
+  .bar {
+    max-width: 760px;
+    margin: var(--spacing-0) auto;
+    display: flex;
+    gap: var(--spacing-s);
+  }
+  .bar .sn-input {
+    flex: 1;
+    min-width: 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  .stop {
+    background: var(--color-flame);
+    color: var(--color-on-primary);
+  }
+  .stop:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-flame) 88%, var(--color-foreground));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dots span { animation: none; opacity: .8; transform: none; }
+    .src { transition: none; }
+    .src:target,
+    .src.src-active { animation: none; }
+    .theme-select { transition: none; }
+  }
+  @media (max-width: 480px) {
+    .user { margin-left: 10%; }
+  }
+  @media (max-width: 375px) {
+    .hdr-row { flex-wrap: wrap; }
+  }
 </style>
 </head>
 <body>
 <main>
-  <h1>Sonia Wiki</h1>
-  <div class="sub">내 블로그 글에 질문하면, 근거 문단과 함께 답해 드려요.</div>
-  <div id="log"></div>
+  <header class="hdr">
+    <div class="hdr-row">
+      <h1 class="sn-text-title">Sonia Wiki</h1>
+      <div class="hdr-actions">
+        <select data-theme-select aria-label="테마" class="theme-select"></select>
+        <button type="button" id="reset" class="sn-btn sn-btn-outline sn-btn-sm">새 대화</button>
+      </div>
+    </div>
+    <p class="sub sn-text-caption">내 블로그 글에 질문하면, 근거 문단과 함께 답해 드려요.</p>
+    <p class="scope sn-text-caption">Sonia.dev 블로그 글에서 찾아 답해요. 글에 없는 내용은 모른다고 답해요.</p>
+  </header>
+  <section id="empty" class="sn-card empty" aria-label="예시 질문">
+    <p class="empty-title sn-text-caption">이런 걸 물어볼 수 있어요</p>
+    <div class="samples">
+      <button type="button" class="sn-btn sn-btn-outline sample">기술 부채 이자가 뭐야?</button>
+      <button type="button" class="sn-btn sn-btn-outline sample">클로저가 바깥 변수를 기억하는 원리가 뭐야?</button>
+      <button type="button" class="sn-btn sn-btn-outline sample">pnpm 스토어가 하드 링크를 쓰는 방식이 궁금해</button>
+    </div>
+  </section>
+  <div id="log" aria-busy="false"></div>
+  <div id="live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 </main>
+<div id="toast" class="sn-card toast" role="status" hidden>
+  <span id="toast-msg"></span>
+  <span class="muted" aria-hidden="true">·</span>
+  <button type="button" id="undo" class="sn-btn sn-btn-ghost sn-btn-sm toast-undo">되돌리기</button>
+</div>
 <form id="f">
   <div class="bar">
-    <input id="q" placeholder="예: 기술 부채 이자가 뭐야?" autocomplete="off" />
-    <button id="btn">질문</button>
+    <label class="sr-only" for="q">질문</label>
+    <input id="q" class="sn-input" maxlength="500" placeholder="블로그 글에 대해 물어보세요" autocomplete="off" />
+    <button type="submit" id="btn" class="sn-btn sn-btn-primary" disabled>질문</button>
+    <button type="button" id="stop" class="sn-btn stop" hidden>중지</button>
   </div>
 </form>
 <script>
+const STORAGE_KEY = "sonia-wiki:turns:v1";
+
 const log = document.getElementById("log");
+const live = document.getElementById("live");
+const empty = document.getElementById("empty");
+const resetBtn = document.getElementById("reset");
+const toast = document.getElementById("toast");
+const toastMsg = document.getElementById("toast-msg");
+const undoBtn = document.getElementById("undo");
 const f = document.getElementById("f");
 const q = document.getElementById("q");
 const btn = document.getElementById("btn");
+const stopBtn = document.getElementById("stop");
+
+let controller = null;
+let pendingNodes = null;
+let turnSeq = 0;
+let turns = [];
+let undoSnapshot = null;
+let undoTimer = null;
+const sentHistory = [];
+let histIdx = 0;
+let draft = "";
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -51,46 +360,552 @@ function el(tag, cls, text) {
   return e;
 }
 
-f.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const question = q.value.trim();
-  if (!question) return;
-  log.appendChild(el("div", "msg user", question));
-  q.value = ""; btn.disabled = true;
-  const bot = el("div", "msg bot", "검색 중…");
-  log.appendChild(bot);
+function syncSubmitState() {
+  btn.disabled = Boolean(controller) || !q.value.trim();
+}
+
+function announce(text) {
+  if (!text) return;
+  live.textContent = "";
+  requestAnimationFrame(() => {
+    live.textContent = text;
+  });
+}
+
+function summarizeForLive(text, sourceCount) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "답변이 도착했어요.";
+  const body = clean.length > 220 ? clean.slice(0, 220).trimEnd() + "…" : clean;
+  return sourceCount > 0 ? `${body} (출처 ${sourceCount}건)` : body;
+}
+
+function saveTurns() {
   try {
-    const res = await fetch("/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
-    });
-    if (!res.ok) {
-      const t = await res.text();
-      let msg = t;
-      try { const d = JSON.parse(t).detail; msg = typeof d === "string" ? d : JSON.stringify(d); } catch {}
-      throw new Error(msg);
+    if (turns.length === 0) {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } else {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(turns));
     }
-    const data = await res.json();
-    bot.textContent = data.answer;
+  } catch {}
+}
+
+function loadTurns() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (t) => t && typeof t.question === "string" && typeof t.answer === "string"
+    );
+  } catch {
+    return [];
+  }
+}
+
+function dismissUndoToast() {
+  clearTimeout(undoTimer);
+  undoTimer = null;
+  undoSnapshot = null;
+  toast.hidden = true;
+  toastMsg.textContent = "";
+}
+
+function makeLoading() {
+  const wrap = el("span", "loading");
+  const label = el("span", "loading-label", "글을 찾는 중");
+  const elapsed = el("span", "loading-elapsed");
+  elapsed.hidden = true;
+  wrap.appendChild(label);
+  wrap.appendChild(elapsed);
+  wrap.appendChild(el("span", "sr-only", "…"));
+  const dots = el("span", "dots");
+  dots.setAttribute("aria-hidden", "true");
+  dots.appendChild(el("span"));
+  dots.appendChild(el("span"));
+  dots.appendChild(el("span"));
+  wrap.appendChild(dots);
+
+  const startedAt = Date.now();
+  const timerId = setInterval(() => {
+    if (!wrap.isConnected) {
+      clearInterval(timerId);
+      return;
+    }
+    const sec = Math.floor((Date.now() - startedAt) / 1000);
+    if (sec >= 2) {
+      label.textContent = "답변을 쓰는 중";
+      elapsed.textContent = ` · ${sec}초`;
+      elapsed.hidden = false;
+    }
+  }, 500);
+
+  return {
+    el: wrap,
+    stop() {
+      clearInterval(timerId);
+    },
+  };
+}
+
+function isSafeHttpUrl(raw) {
+  try {
+    const u = new URL(raw, location.href);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function formatSnippet(raw) {
+  const s = String(raw || "").trimEnd();
+  if (!s) return "";
+  return /[.?!…다요]$/.test(s) ? s : s + "…";
+}
+
+function highlightSourceCard(id) {
+  const card = document.getElementById(id);
+  if (!card) return;
+  const det = card.querySelector("details");
+  if (det) det.open = true;
+  for (const prev of log.querySelectorAll(".src.src-active")) {
+    prev.classList.remove("src-active");
+  }
+  void card.offsetWidth;
+  card.classList.add("src-active");
+}
+
+function renderAnswer(container, text, srcMetaByNum) {
+  const re = /\[(\d+)\]/g;
+  let last = 0;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) {
+      container.appendChild(document.createTextNode(text.slice(last, m.index)));
+    }
+    const meta = srcMetaByNum.get(m[1]);
+    if (meta) {
+      const a = el("a", "sn-tag cite", m[0]);
+      a.href = "#" + meta.id;
+      a.setAttribute(
+        "aria-label",
+        meta.title ? `출처 ${m[1]}: ${meta.title}` : `출처 ${m[1]}`
+      );
+      a.addEventListener("click", () => {
+        highlightSourceCard(meta.id);
+      });
+      container.appendChild(a);
+    } else {
+      container.appendChild(document.createTextNode(m[0]));
+    }
+    last = re.lastIndex;
+  }
+  if (last < text.length) {
+    container.appendChild(document.createTextNode(text.slice(last)));
+  }
+}
+
+async function copyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  ta.remove();
+}
+
+function makeCopyButton(text) {
+  const b = el("button", "sn-btn sn-btn-ghost sn-btn-sm", "복사");
+  b.type = "button";
+  let timer = null;
+  b.addEventListener("click", async () => {
+    try {
+      await copyText(text);
+      b.textContent = "복사됨";
+      clearTimeout(timer);
+      timer = setTimeout(() => { b.textContent = "복사"; }, 1500);
+    } catch {
+      b.textContent = "복사 실패";
+      clearTimeout(timer);
+      timer = setTimeout(() => { b.textContent = "복사"; }, 1500);
+    }
+  });
+  return b;
+}
+
+function makeRetryButton(question, userMsg, bot) {
+  const b = el("button", "sn-btn sn-btn-ghost sn-btn-sm", "다시 시도");
+  b.type = "button";
+  b.addEventListener("click", () => {
+    if (controller) return;
+    userMsg.remove();
+    bot.remove();
+    ask(question);
+  });
+  return b;
+}
+
+function populateBotAnswer(bot, turnNum, answerText, sources) {
+  const srcMetaByNum = new Map();
+  for (const s of sources) {
+    const id = `src-${turnNum}-${s.n}`;
+    srcMetaByNum.set(String(s.n), {
+      id,
+      title: typeof s.title === "string" ? s.title : "",
+    });
+  }
+
+  bot.replaceChildren();
+  const answerEl = el("div", "answer");
+  renderAnswer(answerEl, answerText, srcMetaByNum);
+  bot.appendChild(answerEl);
+
+  const actions = el("div", "bot-actions");
+  actions.appendChild(makeCopyButton(answerText));
+  bot.appendChild(actions);
+
+  if (sources.length > 0) {
     const box = el("div", "sources");
-    for (const s of data.sources) {
-      const card = el("div", "src");
-      card.appendChild(el("span", "score", `유사도 ${s.score}`));
-      const title = el("b", null, `[${s.n}] ${s.title}${s.heading ? " › " + s.heading : ""}`);
-      if (s.url) { const a = el("a"); a.href = s.url; a.target = "_blank"; a.appendChild(title); card.appendChild(a); }
-      else card.appendChild(title);
-      card.appendChild(el("div", null, s.snippet + "…"));
+    for (const s of sources) {
+      const card = el("div", "sn-card sn-card-muted src");
+      card.id = srcMetaByNum.get(String(s.n)).id;
+      const head = el("div", "src-head");
+      const titleEl = el("span", "src-title", `[${s.n}] ${s.title || ""}`);
+      const headingEl = s.heading ? el("span", "src-heading", ` › ${s.heading}`) : null;
+
+      if (s.url && isSafeHttpUrl(s.url)) {
+        const a = el("a", "src-link");
+        a.href = s.url;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.appendChild(titleEl);
+        if (headingEl) a.appendChild(headingEl);
+        a.appendChild(el("span", "sr-only", " (새 탭에서 열림)"));
+        head.appendChild(a);
+      } else {
+        head.appendChild(titleEl);
+        if (headingEl) head.appendChild(headingEl);
+      }
+      card.appendChild(head);
+
+      const snippetText = formatSnippet(s.snippet);
+      if (snippetText) {
+        const det = el("details", "snippet");
+        det.appendChild(el("summary", null, "근거 문단 보기"));
+        det.appendChild(el("div", "snippet-body", snippetText));
+        card.appendChild(det);
+      }
       box.appendChild(card);
     }
     bot.appendChild(box);
+  }
+}
+
+function renderSavedTurn(turnData) {
+  const userMsg = el("div", "msg user", turnData.question);
+  const bot = el("div", "sn-card msg bot");
+  const sources = Array.isArray(turnData.sources) ? turnData.sources : [];
+  populateBotAnswer(bot, turnData.turn, turnData.answer, sources);
+  log.appendChild(userMsg);
+  log.appendChild(bot);
+}
+
+async function ask(rawQuestion) {
+  const question = rawQuestion.trim();
+  if (!question || controller) return;
+
+  dismissUndoToast();
+
+  if (sentHistory[sentHistory.length - 1] !== question) {
+    sentHistory.push(question);
+  }
+  histIdx = sentHistory.length;
+  draft = "";
+
+  empty.hidden = true;
+  const userMsg = el("div", "msg user", question);
+  const bot = el("div", "sn-card msg bot");
+  const loading = makeLoading();
+  bot.appendChild(loading.el);
+  log.appendChild(userMsg);
+  log.appendChild(bot);
+  window.scrollTo(0, document.body.scrollHeight);
+
+  q.value = "";
+  const myController = new AbortController();
+  controller = myController;
+  pendingNodes = [userMsg, bot];
+  log.setAttribute("aria-busy", "true");
+  syncSubmitState();
+  btn.hidden = true;
+  stopBtn.hidden = false;
+
+  try {
+    let res;
+    try {
+      res = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+        signal: myController.signal,
+      });
+    } catch (err) {
+      if (err && err.name === "AbortError") throw err;
+      throw new Error("서버에 연결하지 못했어요");
+    }
+
+    if (!res.ok) {
+      if (res.status === 422) {
+        throw new Error("질문은 1~500자로 써 주세요");
+      }
+      if (res.status === 429) {
+        const t = await res.text();
+        let msg = "요청이 너무 많아요. 잠시 뒤에 다시 시도해 주세요.";
+        try {
+          const d = JSON.parse(t).detail;
+          if (typeof d === "string" && d.trim()) msg = d;
+        } catch {}
+        throw new Error(msg);
+      }
+      if (res.status >= 500) {
+        const t = await res.text();
+        let detail = "";
+        try {
+          const d = JSON.parse(t).detail;
+          if (typeof d === "string" && d.trim()) detail = d.trim();
+        } catch {}
+        const err = new Error("답변을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요");
+        if (detail) err.detail = detail;
+        throw err;
+      }
+      const t = await res.text();
+      let msg = "요청을 처리하지 못했어요. 잠시 뒤 다시 시도해 주세요";
+      try {
+        const d = JSON.parse(t).detail;
+        if (typeof d === "string" && d.trim()) msg = d;
+      } catch {}
+      throw new Error(msg);
+    }
+
+    let data;
+    try {
+      data = await res.json();
+    } catch (err) {
+      if (err && err.name === "AbortError") throw err;
+      throw new Error("답변을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요");
+    }
+
+    if (!bot.isConnected) return;
+
+    const sources = Array.isArray(data.sources) ? data.sources : [];
+    const answerText = typeof data.answer === "string" ? data.answer : "";
+    turnSeq += 1;
+    const turnNum = turnSeq;
+
+    populateBotAnswer(bot, turnNum, answerText, sources);
+    turns.push({ turn: turnNum, question, answer: answerText, sources });
+    saveTurns();
+    announce(summarizeForLive(answerText, sources.length));
+
+    bot.scrollIntoView({ block: "start" });
   } catch (err) {
-    bot.textContent = "오류: " + err.message;
+    if (!bot.isConnected) return;
+    bot.replaceChildren();
+    if (err && err.name === "AbortError") {
+      bot.appendChild(el("div", "answer muted", "요청을 중지했어요."));
+      const actions = el("div", "bot-actions");
+      actions.appendChild(makeRetryButton(question, userMsg, bot));
+      bot.appendChild(actions);
+      if (!q.value.trim()) q.value = question;
+      announce("요청을 중지했어요.");
+      bot.scrollIntoView({ block: "start" });
+      return;
+    }
+    const errMsg = err.message || "답변을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요";
+    bot.classList.add("error");
+    bot.appendChild(el("div", "answer error-text", errMsg));
+    if (err && err.detail) {
+      bot.appendChild(el("div", "error-detail sn-text-caption muted", err.detail));
+    }
+    const actions = el("div", "bot-actions");
+    actions.appendChild(makeRetryButton(question, userMsg, bot));
+    bot.appendChild(actions);
+    q.value = question;
+    announce(errMsg);
+    bot.scrollIntoView({ block: "start" });
   } finally {
-    btn.disabled = false; q.focus();
-    window.scrollTo(0, document.body.scrollHeight);
+    loading.stop();
+    if (controller === myController) {
+      controller = null;
+      pendingNodes = null;
+      log.setAttribute("aria-busy", "false");
+      btn.hidden = false;
+      stopBtn.hidden = true;
+      syncSubmitState();
+      q.focus({ preventScroll: true });
+    }
+  }
+}
+
+f.addEventListener("submit", (e) => {
+  e.preventDefault();
+  ask(q.value);
+});
+
+stopBtn.addEventListener("click", () => {
+  if (controller) controller.abort();
+});
+
+resetBtn.addEventListener("click", () => {
+  if (controller) {
+    controller.abort();
+    controller = null;
+    if (pendingNodes) {
+      for (const n of pendingNodes) n.remove();
+      pendingNodes = null;
+    }
+    log.setAttribute("aria-busy", "false");
+    btn.hidden = false;
+    stopBtn.hidden = true;
+    syncSubmitState();
+  }
+  const hasContent = log.childNodes.length > 0 || turns.length > 0;
+  if (hasContent) {
+    clearTimeout(undoTimer);
+    undoSnapshot = {
+      turns: turns.slice(),
+      turnSeq,
+      nodes: Array.from(log.childNodes),
+    };
+    log.replaceChildren();
+    turns = [];
+    turnSeq = 0;
+    saveTurns();
+    empty.hidden = false;
+    toastMsg.textContent = "";
+    toast.hidden = false;
+    requestAnimationFrame(() => {
+      if (!toast.hidden) toastMsg.textContent = "대화를 지웠어요";
+    });
+    undoTimer = setTimeout(() => {
+      dismissUndoToast();
+    }, 5000);
+  } else {
+    empty.hidden = false;
+  }
+  q.focus();
+});
+
+undoBtn.addEventListener("click", () => {
+  if (!undoSnapshot) return;
+  const snap = undoSnapshot;
+  dismissUndoToast();
+  log.replaceChildren(...snap.nodes);
+  turns = snap.turns;
+  turnSeq = snap.turnSeq;
+  empty.hidden = log.childNodes.length > 0;
+  saveTurns();
+  announce("대화를 되돌렸어요.");
+  q.focus();
+});
+
+for (const sampleBtn of empty.querySelectorAll(".sample")) {
+  sampleBtn.addEventListener("click", () => {
+    ask(sampleBtn.textContent);
+  });
+}
+
+q.addEventListener("input", () => {
+  histIdx = sentHistory.length;
+  draft = q.value;
+  syncSubmitState();
+});
+
+q.addEventListener("keydown", (e) => {
+  if (e.isComposing) return;
+  if (e.key === "ArrowUp") {
+    if (sentHistory.length === 0) return;
+    if (histIdx === sentHistory.length) draft = q.value;
+    if (histIdx > 0) {
+      e.preventDefault();
+      histIdx -= 1;
+      q.value = sentHistory[histIdx];
+      q.setSelectionRange(q.value.length, q.value.length);
+      syncSubmitState();
+    }
+  } else if (e.key === "ArrowDown") {
+    if (histIdx < sentHistory.length) {
+      e.preventDefault();
+      histIdx += 1;
+      q.value = histIdx === sentHistory.length ? draft : sentHistory[histIdx];
+      q.setSelectionRange(q.value.length, q.value.length);
+      syncSubmitState();
+    }
   }
 });
+
+document.addEventListener("keydown", (e) => {
+  if (e.isComposing) return;
+  if (e.key === "Escape" && controller) {
+    e.preventDefault();
+    controller.abort();
+    return;
+  }
+  if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const active = document.activeElement;
+    const tag = active ? active.tagName : "";
+    const isEditable =
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      (active && active.isContentEditable);
+    if (!isEditable) {
+      e.preventDefault();
+      q.focus();
+    }
+  }
+});
+
+window.addEventListener("hashchange", () => {
+  const id = location.hash.slice(1);
+  if (id && id.startsWith("src-")) {
+    highlightSourceCard(id);
+  }
+});
+
+const saved = loadTurns();
+if (saved.length > 0) {
+  turns = saved.map((t, i) => ({
+    turn: typeof t.turn === "number" && t.turn > 0 ? t.turn : i + 1,
+    question: t.question,
+    answer: t.answer,
+    sources: Array.isArray(t.sources) ? t.sources : [],
+  }));
+  turnSeq = turns.reduce((max, t) => Math.max(max, t.turn), 0);
+  empty.hidden = true;
+  for (const t of turns) {
+    renderSavedTurn(t);
+    if (sentHistory[sentHistory.length - 1] !== t.question) {
+      sentHistory.push(t.question);
+    }
+  }
+  histIdx = sentHistory.length;
+}
+
+syncSubmitState();
+
+const initQ = new URLSearchParams(location.search).get("q");
+if (initQ && initQ.trim()) {
+  history.replaceState(null, '', location.pathname);
+  ask(initQ);
+}
 </script>
 </body>
 </html>
