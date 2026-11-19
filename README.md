@@ -4,6 +4,7 @@
 
 - 데이터: 제 블로그 [Sonia.dev](https://ckdtjs505.github.io)에 공개한 글 56개 (`data/posts/`, 2026-11-19 기준 · 1시간마다 자동 동기화)
 - 답변의 출처 카드를 누르면 해당 블로그 글로 이동합니다.
+- **라이브 데모:** [changsun-macbookair.tail55c391.ts.net](https://changsun-macbookair.tail55c391.ts.net) (제 맥에서 돌아가므로 맥이 꺼져 있으면 열리지 않습니다)
 
 ![데모: 질문하면 블로그 글을 근거로 답하고 출처 카드를 보여 준다](docs/demo.gif)
 
@@ -21,10 +22,52 @@ flowchart LR
     E --> F[Top-k 유사도 검색]
     D --> F
     F --> G[프롬프트 조립<br/>근거 문단 + 인용 규칙]
-    G --> H[Gemini]
+    G --> H[Gemini 또는 Ollama]
     H --> I[답변 + 출처 카드]
   end
 ```
+
+## 운영 구조
+
+서버는 클라우드가 아니라 제 맥 한 대에서 돌아갑니다. 띄우고 갱신하는 일은 모두 launchd가 합니다.
+
+```mermaid
+flowchart LR
+  subgraph GH["GitHub"]
+    B[블로그 저장소<br/>_posts/*.md]
+    P[프로필 README<br/>답변 카드 이미지]
+  end
+  subgraph MAC["내 맥"]
+    S["sync.sh<br/>(launchd, 1시간마다)"] --> D[data/posts + 재적재<br/>ChromaDB]
+    U["uvicorn :8000<br/>(launchd, 항상 실행)"] --> D
+    U --> O[Ollama 로컬 LLM]
+    U --> C[(.cache/cards.json<br/>카드 답변 캐시)]
+  end
+  B -- 바뀐 글 가져오기 --> S
+  S -- data/posts 커밋·push --> GH
+  V[방문자] --> F[Tailscale Funnel<br/>공개 HTTPS] --> U
+  P -- /card.svg --> F
+```
+
+| 구성 | 하는 일 |
+|---|---|
+| `dev.sonia.wiki` (launchd) | `uvicorn app.main:app`을 `127.0.0.1:8000`에 항상 띄움 |
+| Tailscale Funnel | `127.0.0.1:8000`을 공개 HTTPS 주소로 노출 (포트포워딩·클라우드 없음) |
+| `dev.sonia.wiki.sync` (launchd) | 1시간마다 `sync.sh` 실행 → 블로그에서 바뀐 글이 있으면 재적재·서버 재시작·커밋 |
+| Ollama | `LLM_PROVIDER=ollama`일 때 맥에서 답변 생성 (API 비용 없음) |
+| `/card.svg?q=` | 질문에 대한 답을 SVG 카드로 그려 [GitHub 프로필](https://github.com/ckdtjs505) README에 이미지로 표시 |
+
+**API**
+
+| 경로 | 설명 |
+|---|---|
+| `GET /` | 채팅 UI (`?q=질문`이면 바로 질문) |
+| `POST /ask` | 질문 → 답변 + 출처 (IP당 분당 5회, 전체 분당 20회 제한) |
+| `GET /search?q=` | LLM 없이 검색 결과만 (평가·디버깅용) |
+| `GET /card.svg?q=` | README용 답변 카드. 답은 `.cache/cards.json`에 캐시하고, GitHub 이미지 프록시가 1시간 캐시 |
+| `GET /health` | 상태 확인 |
+
+> 처음 보는 질문의 카드는 LLM 답변에 15~30초가 걸려 GitHub 이미지 프록시가 기다려 주지 않습니다. 프로필에 새 질문을 넣기 전에 `curl --get --data-urlencode "q=질문" localhost:8000/card.svg`로 미리 만들어 둡니다.
 
 ## 기술 스택
 
@@ -34,7 +77,8 @@ flowchart LR
 | Vector DB | ChromaDB (로컬 영속 저장) |
 | 임베딩 | `BAAI/bge-m3` (다국어, 로컬) / OpenAI `text-embedding-3-small` — 설정으로 교체 |
 | LLM | Google Gemini / Ollama 로컬 모델 (`LLM_PROVIDER`로 교체) |
-| 프론트 | 바닐라 JS 채팅 UI (출처·유사도 표시) |
+| 프론트 | 바닐라 JS 채팅 UI (출처·유사도 표시, [sonia-ui](https://github.com/ckdtjs505/sonia-ui) 테마) |
+| 운영 | 맥 + launchd + Tailscale Funnel |
 
 ## 실행 방법
 
@@ -108,11 +152,12 @@ app/
   store.py       # ChromaDB 저장·검색
   ingest.py      # 적재 스크립트
   rag.py         # 프롬프트 조립 + Gemini 또는 Ollama 호출
-  main.py        # FastAPI
+  main.py        # FastAPI (/ask, /search, /card.svg)
 web/index.html   # 채팅 UI
 eval/            # 검색 품질 평가
 data/posts/      # 위키 원본 마크다운 (sync.sh가 블로그에서 동기화)
 sync.sh          # 블로그 → data/posts 동기화 + 재적재
+.cache/          # (git 제외) 블로그 clone, 카드 답변 캐시
 ```
 
 ## 라이선스
