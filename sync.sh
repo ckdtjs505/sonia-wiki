@@ -28,6 +28,13 @@ sed -i '' -E "s/공개한 글 [0-9]+개 \(\`data\/posts\/\`, [0-9-]+ 기준/공�
 .venv/bin/python -m app.ingest
 launchctl kickstart -k "gui/$(id -u)/dev.sonia.wiki"  # 새 컬렉션을 서버가 다시 열도록
 
+# 프로필 카드 답을 새 글 기준으로 다시 만든다 (캐시가 비어 있으면 GitHub 이미지 프록시가 답을 기다리지 못해 카드가 깨진다)
+# shortcut: localhost도 IP당 분당 5회 제한을 받아 프로필 질문이 6개를 넘으면 일부만 만들어짐, 늘리면 sleep을 넣을 것
+rm -f .cache/cards.json
+for _ in $(seq 30); do curl -sf localhost:8000/health >/dev/null && break; sleep 2; done
+curl -sf https://raw.githubusercontent.com/ckdtjs505/ckdtjs505/main/README.md | grep -o 'card\.svg?q=[^"]*' | sort -u |
+  while read -r p; do curl -s -o /dev/null "localhost:8000/$p"; done || true
+
 git add data/posts README.md
 git commit -qm "블로그 글 동기화" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 git push -q origin HEAD:main

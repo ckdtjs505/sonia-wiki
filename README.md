@@ -64,6 +64,8 @@ flowchart LR
 | `GET /card.svg?q=` | README용 답변 카드. 답은 `.cache/cards.json`에 캐시하고, GitHub 이미지 프록시가 1시간 캐시 |
 | `GET /health` | 상태 확인 |
 
+> `sync.sh`는 동기화할 때 카드 캐시를 비우고, 프로필 README에 있는 질문의 답을 새 글 기준으로 다시 만듭니다.
+>
 > 처음 보는 질문의 카드는 LLM 답변에 15~30초가 걸려 GitHub 이미지 프록시가 기다려 주지 않습니다. 프로필에 새 질문을 넣기 전에 `curl --get --data-urlencode "q=질문" localhost:8000/card.svg`로 미리 만들어 둡니다.
 
 ## 기술 스택
