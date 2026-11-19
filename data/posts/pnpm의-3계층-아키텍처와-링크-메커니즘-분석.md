@@ -1,5 +1,5 @@
 ---
-url: https://ckdtjs505.github.io/posts/pnpm%EC%9D%98-3%EA%B3%84%EC%B8%B5-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98%EC%99%80-%EB%A7%81%ED%81%AC-%EB%A9%94%EC%BB%A4%EB%8B%88%EC%A6%98-%EB%B6%84%EC%84%9D
+url: https://ckdtjs505.github.io/posts/pnpm의-3계층-아키텍처와-링크-메커니즘-분석
 layout: post
 title: 'pnpm node_modules 구조: 글로벌 스토어·가상 스토어·심볼릭 링크 3계층과 유령 의존성 차단'
 series: 'pnpm 아키텍처'

@@ -2,7 +2,7 @@
 url: https://ckdtjs505.github.io/posts/ai-deepwork-block-schedule
 layout: post
 title: "AI로 일하니 모든 일이 딥워크가 됐다 - 시작이 느린 개발자의 블럭 일정 실험기"
-date: 2026-10-30
+date: 2026-10-30T12:46:00+09:00
 tags: ["회고", "생산성", "AI", "일하는방식"]
 comments: true
 share: true

@@ -2,7 +2,7 @@
 url: https://ckdtjs505.github.io/posts/technical_debt
 layout: post
 title: 기술 부채(Technical Debt)의 개념과 메커니즘
-date: 2026-09-15
+date: 2026-09-15T10:43:00+09:00
 tags: ["기술부채", "소프트웨어공학", "리팩터링", "코드품질", "아키텍처"]
 comments: true
 share: true

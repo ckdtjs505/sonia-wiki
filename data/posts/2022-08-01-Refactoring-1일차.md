@@ -1,5 +1,5 @@
 ---
-url: https://ckdtjs505.github.io/posts/2022-08-01-Refactoring-1%EC%9D%BC%EC%B0%A8
+url: https://ckdtjs505.github.io/posts/2022-08-01-Refactoring-1일차
 layout: post
 title: '[Refactoring] 1일차'
 date: 2022-08-01T00:00:00.000Z

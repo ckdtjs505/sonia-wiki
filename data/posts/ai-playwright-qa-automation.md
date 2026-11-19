@@ -2,7 +2,7 @@
 url: https://ckdtjs505.github.io/posts/ai-playwright-qa-automation
 layout: post
 title: 'AI가 짠 Playwright 검수 자동화, 첫 FAIL 11건은 테스트가 틀린 거였다: 6시간 검수를 30분으로'
-date: 2026-11-03
+date: 2026-11-03T06:35:00+09:00
 tags: [AI, 회고, Playwright, Chrome Extension]
 comments: true
 share: true

@@ -1,5 +1,5 @@
 ---
-url: https://ckdtjs505.github.io/posts/book_%EB%A8%BC%EC%A0%80%EC%98%A8_%EB%AF%B8%EB%9E%98
+url: https://ckdtjs505.github.io/posts/book_먼저온_미래
 layout: post
 title: 도서 '먼저 온 미래' 회고 - AI 시대의 생존법과 지식 구조화 전략
 date: 2026-09-16T09:46:28+09:00

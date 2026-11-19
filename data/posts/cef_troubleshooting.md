@@ -4,7 +4,7 @@ layout: post
 series: '임베디드 브라우저'
 title: 'CEF 창을 닫으면 API 요청이 사라지는 이유: 모달 종료 Race Condition 트러블슈팅'
 featured: true
-date: 2026-09-16
+date: 2026-09-16T08:20:00+09:00
 tags:
   - CEF
   - Troubleshooting
