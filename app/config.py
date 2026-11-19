@@ -17,7 +17,10 @@ EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "local")
 LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "BAAI/bge-m3")
 OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
-# LLM
+# LLM: "gemini" 또는 "ollama"(내 맥에서 직접 생성, 키·요금 없음)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/v1")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "exaone3.5:7.8b")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 
 # 청크·검색 파라미터

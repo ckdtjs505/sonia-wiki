@@ -33,7 +33,7 @@ flowchart LR
 | API 서버 | Python, FastAPI |
 | Vector DB | ChromaDB (로컬 영속 저장) |
 | 임베딩 | `BAAI/bge-m3` (다국어, 로컬) / OpenAI `text-embedding-3-small` — 설정으로 교체 |
-| LLM | Google Gemini |
+| LLM | Google Gemini / Ollama 로컬 모델 (`LLM_PROVIDER`로 교체) |
 | 프론트 | 바닐라 JS 채팅 UI (출처·유사도 표시) |
 
 ## 실행 방법
@@ -98,7 +98,7 @@ app/
   embeddings.py  # 임베딩 제공자 (local / openai)
   store.py       # ChromaDB 저장·검색
   ingest.py      # 적재 스크립트
-  rag.py         # 프롬프트 조립 + Gemini 호출
+  rag.py         # 프롬프트 조립 + Gemini 또는 Ollama 호출
   main.py        # FastAPI
 web/index.html   # 채팅 UI
 eval/            # 검색 품질 평가

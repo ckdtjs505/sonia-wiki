@@ -21,13 +21,24 @@ def answer(question: str, k: int = config.TOP_K) -> dict:
     if not hits:
         return {"answer": "위키가 비어 있어요. 먼저 ingest를 실행하세요.", "sources": []}
 
-    client = genai.Client()  # GEMINI_API_KEY 환경 변수를 읽음
-    resp = client.models.generate_content(
-        model=config.GEMINI_MODEL,
-        contents=f"<context>\n{build_context(hits)}\n</context>\n\n질문: {question}",
-        config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
-    )
-    text = resp.text or "답변을 받지 못했어요."
+    prompt = f"<context>\n{build_context(hits)}\n</context>\n\n질문: {question}"
+    if config.LLM_PROVIDER == "ollama":
+        from openai import OpenAI  # Ollama는 OpenAI 호환 API를 연다
+
+        client = OpenAI(base_url=config.OLLAMA_URL, api_key="ollama")
+        resp = client.chat.completions.create(
+            model=config.OLLAMA_MODEL,
+            messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
+        )
+        text = resp.choices[0].message.content or "답변을 받지 못했어요."
+    else:
+        client = genai.Client()  # GEMINI_API_KEY 환경 변수를 읽음
+        resp = client.models.generate_content(
+            model=config.GEMINI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+        )
+        text = resp.text or "답변을 받지 못했어요."
     sources = [
         {"n": i + 1, "score": h["score"], **h["metadata"], "snippet": h["text"][:200]}
         for i, h in enumerate(hits)

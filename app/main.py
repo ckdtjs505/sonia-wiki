@@ -1,4 +1,5 @@
 """FastAPI 서버. 실행: uvicorn app.main:app --reload"""
+import openai
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from google.genai import errors
@@ -27,6 +28,8 @@ def ask(req: AskRequest):
         return answer(req.question, req.k)
     except errors.APIError as e:  # 키·크레딧·모델 이름 문제를 화면에 그대로 보여 준다
         raise HTTPException(502, f"Gemini 오류 {e.code}: {e.message}")
+    except openai.APIError as e:  # Ollama가 꺼져 있거나 모델을 안 받았을 때
+        raise HTTPException(502, f"로컬 LLM 오류: {e.message}")
 
 
 @app.get("/search")
