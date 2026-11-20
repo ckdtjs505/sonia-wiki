@@ -2,7 +2,7 @@
 
 내 개발 블로그 글(마크다운)에 자연어로 질문하면, **관련 문단을 Vector DB에서 찾아 근거와 함께** 답해 주는 RAG 데모입니다.
 
-- 데이터: 제 블로그 [Sonia.dev](https://ckdtjs505.github.io)에 공개한 글 56개 (`data/posts/`, 2026-11-19 기준 · 1시간마다 자동 동기화)
+- 데이터: 제 블로그 [Sonia.dev](https://ckdtjs505.github.io)에 공개한 글 57개 (`data/posts/`, 2026-11-20 기준 · 1시간마다 자동 동기화)
 - 답변의 출처 카드를 누르면 해당 블로그 글로 이동합니다.
 - **라이브 데모:** [changsun-macbookair.tail55c391.ts.net](https://changsun-macbookair.tail55c391.ts.net) (제 맥에서 돌아가므로 맥이 꺼져 있으면 열리지 않습니다)
 
